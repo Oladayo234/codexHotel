@@ -49,6 +49,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
     }
 
+    @ExceptionHandler(InvalidReservationStatusException.class)
+    public ResponseEntity<String> handleInvalidReservationStatusException(InvalidReservationStatusException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+    }
+
+    @ExceptionHandler(CancellationNotAllowedException.class)
+    public ResponseEntity<String> handleCancellationNotAllowedException(CancellationNotAllowedException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<String>> handleValidationException(MethodArgumentNotValidException exception) {
         List<String> errors = new ArrayList<>();

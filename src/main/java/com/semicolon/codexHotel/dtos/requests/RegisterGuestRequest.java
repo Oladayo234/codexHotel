@@ -2,6 +2,7 @@ package com.semicolon.codexHotel.dtos.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
@@ -13,6 +14,9 @@ public class RegisterGuestRequest {
     private String email;
     @NotBlank(message = "Phone number is required")
     private String phoneNumber;
-    @NotBlank(message = "Password is required")
+    @Pattern(
+            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!*()]).{8,26}$",
+            message = "Password must be 8-26 characters and contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
+    )
     private String password;
 }

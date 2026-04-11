@@ -8,8 +8,8 @@ import lombok.Data;
 
 @Data
 public class BookRoomRequest {
-    @NotBlank(message = "Guest ID is required")
-    private String guestId;
+    @NotBlank(message = "Guest reference number is required")
+    private String guestReferenceNumber;
     @NotNull(message = "Room type is required")
     private RoomType roomType;
     @Min(value = 1, message = "Number of nights must be at least 1")

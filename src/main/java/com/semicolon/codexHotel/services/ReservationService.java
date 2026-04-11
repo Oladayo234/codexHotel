@@ -8,22 +8,18 @@ import com.semicolon.codexHotel.data.repositories.GuestRepository;
 import com.semicolon.codexHotel.data.repositories.ReservationRepository;
 import com.semicolon.codexHotel.data.repositories.RoomRepository;
 import com.semicolon.codexHotel.dtos.requests.BookRoomRequest;
-import com.semicolon.codexHotel.dtos.requests.CancelReservationRequest;
 import com.semicolon.codexHotel.dtos.responses.BookRoomResponse;
-import com.semicolon.codexHotel.dtos.responses.CancelReservationResponse;
 import com.semicolon.codexHotel.exceptions.GuestNotFoundException;
-import com.semicolon.codexHotel.exceptions.ReservationNotFoundException;
 import com.semicolon.codexHotel.exceptions.RoomNotAvailableException;
-import com.semicolon.codexHotel.exceptions.RoomNotFoundException;
 import com.semicolon.codexHotel.utils.PaymentCalculator;
 import com.semicolon.codexHotel.utils.ReservationMapper;
+import com.semicolon.codexHotel.utils.ReservationReferenceGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +30,7 @@ public class ReservationService {
     private final GuestRepository guestRepository;
 
     public BookRoomResponse bookRoom(BookRoomRequest request) {
-        Guest guest = guestRepository.findById(request.getGuestId())
+        Guest guest = guestRepository.findByGuestReferenceNumber(request.getGuestReferenceNumber())
                 .orElseThrow(() -> new GuestNotFoundException("Guest not found"));
 
         List<Room> allAvailableRooms = roomRepository.findByRoomStatus(RoomStatus.AVAILABLE);
@@ -49,7 +45,7 @@ public class ReservationService {
             throw new RoomNotAvailableException("No available rooms of type " + request.getRoomType());
         }
 
-        Room room = availableRooms.get(0);
+        Room room = availableRooms.getFirst();
 
         LocalDate checkInDate = LocalDate.now();
         LocalDate checkOutDate = checkInDate.plusDays(request.getNumberOfNights());
@@ -58,7 +54,7 @@ public class ReservationService {
         double totalPayment = PaymentCalculator.calculateTotalPayment(room.getRoomType(), request.getNumberOfNights(), isFestive);
 
         Reservation reservation = new Reservation();
-        reservation.setReferenceNumber("RES" + UUID.randomUUID().toString().substring(0, 4).toUpperCase());
+        reservation.setReferenceNumber(ReservationReferenceGenerator.generateReservationReference());
         reservation.setGuestId(guest.getId());
         reservation.setRoomId(room.getId());
         reservation.setCheckInDate(checkInDate);
@@ -68,30 +64,15 @@ public class ReservationService {
         reservation.setTotalPayment(totalPayment);
         reservationRepository.save(reservation);
 
-        room.setRoomStatus(RoomStatus.OCCUPIED);
+        room.setRoomStatus(RoomStatus.RESERVED);
         roomRepository.save(room);
 
         return ReservationMapper.toBookRoomResponse(reservation, guest, room);
     }
 
-    public CancelReservationResponse cancelReservation(CancelReservationRequest request) {
-        Reservation reservation = reservationRepository.findByReferenceNumber(request.getReferenceNumber())
-                .orElseThrow(() -> new ReservationNotFoundException("Reservation not found"));
-
-        Room room = roomRepository.findById(reservation.getRoomId())
-                .orElseThrow(() -> new RoomNotFoundException("Room not found"));
-
-        room.setRoomStatus(RoomStatus.AVAILABLE);
-        roomRepository.save(room);
-        reservationRepository.delete(reservation);
-
-        CancelReservationResponse response = new CancelReservationResponse();
-        response.setMessage("Reservation cancelled successfully");
-        response.setRoomNumber(room.getRoomNumber());
-        return response;
-    }
-
-    public List<Reservation> getReservationsByGuestId(String guestId) {
-        return reservationRepository.findByGuestId(guestId);
+    public List<Reservation> getReservationsByGuestReferenceNumber(String guestReferenceNumber) {
+        Guest guest = guestRepository.findByGuestReferenceNumber(guestReferenceNumber)
+                .orElseThrow(() -> new GuestNotFoundException("Guest not found"));
+        return reservationRepository.findByGuestId(guest.getId());
     }
 }

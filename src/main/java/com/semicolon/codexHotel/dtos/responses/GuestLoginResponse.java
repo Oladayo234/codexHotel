@@ -4,9 +4,9 @@ import com.semicolon.codexHotel.data.models.enums.Role;
 import lombok.Data;
 
 @Data
-public class LoginResponse {
+public class GuestLoginResponse {
     private String message;
-    private String id;
+    private String guestReferenceNumber;
     private String name;
     private String email;
     private Role role;

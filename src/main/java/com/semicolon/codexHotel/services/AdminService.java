@@ -5,8 +5,10 @@ import com.semicolon.codexHotel.data.models.enums.Role;
 import com.semicolon.codexHotel.data.repositories.AdminRepository;
 import com.semicolon.codexHotel.dtos.requests.CreateFrontDeskRequest;
 import com.semicolon.codexHotel.dtos.requests.LoginRequest;
-import com.semicolon.codexHotel.dtos.responses.LoginResponse;
+import com.semicolon.codexHotel.dtos.responses.AdminLoginResponse;
+import com.semicolon.codexHotel.dtos.responses.FrontDeskLoginResponse;
 import com.semicolon.codexHotel.exceptions.InvalidCredentialsException;
+import com.semicolon.codexHotel.utils.FrontDeskReferenceGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,22 +18,22 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
 
-    public LoginResponse login(LoginRequest request) {
+    public AdminLoginResponse login(LoginRequest request) {
         Admin admin = adminRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
         if (!admin.getPassword().equals(request.getPassword())) {
             throw new InvalidCredentialsException("Invalid credentials");
         }
-        LoginResponse response = new LoginResponse();
+        AdminLoginResponse response = new AdminLoginResponse();
         response.setMessage("Welcome, Madam Bolu!");
-        response.setId(admin.getId());
+        response.setAdminReferenceNumber(admin.getAdminReferenceNumber());
         response.setName(admin.getName());
         response.setEmail(admin.getEmail());
         response.setRole(admin.getRole());
         return response;
     }
 
-    public LoginResponse createFrontDesk(CreateFrontDeskRequest request) {
+    public FrontDeskLoginResponse createFrontDesk(CreateFrontDeskRequest request) {
         if (adminRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new InvalidCredentialsException("Front desk account with email " + request.getEmail() + " already exists");
         }
@@ -40,11 +42,12 @@ public class AdminService {
         frontDesk.setEmail(request.getEmail());
         frontDesk.setPassword(request.getPassword());
         frontDesk.setRole(Role.FRONT_DESK);
+        frontDesk.setAdminReferenceNumber(FrontDeskReferenceGenerator.generateFrontDeskReference());
         adminRepository.save(frontDesk);
 
-        LoginResponse response = new LoginResponse();
+        FrontDeskLoginResponse response = new FrontDeskLoginResponse();
         response.setMessage("Front desk account created successfully");
-        response.setId(frontDesk.getId());
+        response.setFrontDeskReferenceNumber(frontDesk.getAdminReferenceNumber());
         response.setName(frontDesk.getName());
         response.setEmail(frontDesk.getEmail());
         response.setRole(frontDesk.getRole());

@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface GuestRepository extends MongoRepository<Guest, String> {
     Optional<Guest> findByEmail(String email);
+    Optional<Guest> findByGuestReferenceNumber(String guestReferenceNumber);
 }

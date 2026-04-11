@@ -4,11 +4,9 @@ import com.semicolon.codexHotel.data.models.Guest;
 import com.semicolon.codexHotel.data.repositories.GuestRepository;
 import com.semicolon.codexHotel.dtos.requests.LoginRequest;
 import com.semicolon.codexHotel.dtos.requests.RegisterGuestRequest;
-import com.semicolon.codexHotel.dtos.responses.LoginResponse;
+import com.semicolon.codexHotel.dtos.responses.GuestLoginResponse;
 import com.semicolon.codexHotel.dtos.responses.RegisterGuestResponse;
-import com.semicolon.codexHotel.exceptions.GuestAlreadyExistsException;
-import com.semicolon.codexHotel.exceptions.GuestNotFoundException;
-import com.semicolon.codexHotel.exceptions.InvalidCredentialsException;
+import com.semicolon.codexHotel.exceptions.*;
 import com.semicolon.codexHotel.utils.GuestMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +26,7 @@ public class GuestService {
         return GuestMapper.toRegisterGuestResponse(guest);
     }
 
-    public LoginResponse login(LoginRequest request) {
+    public GuestLoginResponse login(LoginRequest request) {
         Guest guest = guestRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new GuestNotFoundException("Guest not found"));
         if (!guest.getPassword().equals(request.getPassword())) {
