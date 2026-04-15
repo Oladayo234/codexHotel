@@ -55,7 +55,7 @@ public class FrontDeskService {
         Room room = pair.getRoom();
         Reservation reservation = pair.getReservation();
         if (reservation.getReservationStatus() != ReservationStatus.CHECKED_IN) {
-            throw new InvalidReservationStatusException("Cannot check out — guest has not checked in yet");
+            throw new InvalidReservationStatusException("Cannot check out guest has not checked in yet");
         }
 
         room.setRoomStatus(RoomStatus.AVAILABLE);

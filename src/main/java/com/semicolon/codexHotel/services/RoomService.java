@@ -7,6 +7,7 @@ import com.semicolon.codexHotel.data.repositories.RoomRepository;
 import com.semicolon.codexHotel.dtos.requests.AddRoomRequest;
 import com.semicolon.codexHotel.dtos.responses.RoomResponse;
 import com.semicolon.codexHotel.exceptions.RoomAlreadyExistException;
+import com.semicolon.codexHotel.exceptions.RoomNotAvailableException;
 import com.semicolon.codexHotel.exceptions.RoomNotFoundException;
 import com.semicolon.codexHotel.utils.GenerateRoomNumber;
 import com.semicolon.codexHotel.utils.RoomMapper;
@@ -55,6 +56,17 @@ public class RoomService {
         Room room = roomRepository.findByRoomNumber(roomNumber)
                 .orElseThrow(() -> new RoomNotFoundException("Room " + roomNumber + " not found"));
         room.setRoomStatus(RoomStatus.MAINTENANCE);
+        roomRepository.save(room);
+        return RoomMapper.toRoomResponse(room);
+    }
+
+    public RoomResponse markRoomAsAvailable(String roomNumber) {
+        Room room = roomRepository.findByRoomNumber(roomNumber)
+                .orElseThrow(() -> new RoomNotFoundException("Room " + roomNumber + " not found"));
+        if (room.getRoomStatus() != RoomStatus.MAINTENANCE) {
+            throw new RoomNotAvailableException("Room " + roomNumber + " is not under maintenance");
+        }
+        room.setRoomStatus(RoomStatus.AVAILABLE);
         roomRepository.save(room);
         return RoomMapper.toRoomResponse(room);
     }

@@ -59,6 +59,11 @@ public class FrontDeskController {
         return ResponseEntity.status(HttpStatus.OK).body(roomService.markRoomForMaintenance(roomNumber));
     }
 
+    @PatchMapping("/rooms/{roomNumber}/available")
+    public ResponseEntity<RoomResponse> markRoomAsAvailable(@PathVariable String roomNumber) {
+        return ResponseEntity.status(HttpStatus.OK).body(roomService.markRoomAsAvailable(roomNumber));
+    }
+
     @PostMapping("/notify/{referenceNumber}")
     public ResponseEntity<NotificationResponse> sendNotification(@PathVariable String referenceNumber) {
         return ResponseEntity.status(HttpStatus.OK).body(notificationService.sendReminder(referenceNumber));

@@ -48,6 +48,11 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body(roomService.markRoomForMaintenance(roomNumber));
     }
 
+    @PatchMapping("/rooms/{roomNumber}/available")
+    public ResponseEntity<RoomResponse> markRoomAsAvailable(@PathVariable String roomNumber) {
+        return ResponseEntity.status(HttpStatus.OK).body(roomService.markRoomAsAvailable(roomNumber));
+    }
+
     @GetMapping("/reports")
     public ResponseEntity<ReportResponse> generateReport() {
         return ResponseEntity.status(HttpStatus.OK).body(reportService.generateReport());
