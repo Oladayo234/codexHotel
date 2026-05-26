@@ -1,9 +1,10 @@
-package com.semicolon.codexhotel;
+package com.semicolon.codexHotel;
 
+import com.semicolon.codexHotel.CodexHotelApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(classes = CodexHotelApplication.class)
 class CodexHotelApplicationTests {
 
     @Test
