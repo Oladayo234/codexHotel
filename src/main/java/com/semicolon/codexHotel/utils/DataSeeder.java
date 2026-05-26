@@ -6,6 +6,7 @@ import com.semicolon.codexHotel.data.repositories.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class DataSeeder implements CommandLineRunner {
 
     private final AdminRepository adminRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
@@ -22,7 +24,7 @@ public class DataSeeder implements CommandLineRunner {
             admin.setName("Madam Bolu");
             admin.setAdminReferenceNumber(AdminReferenceGenerator.generateAdminReference());
             admin.setEmail("admin@codexhotel.com");
-            admin.setPassword("Admin@1234");
+            admin.setPassword(passwordEncoder.encode("Admin@1234"));
             admin.setRole(Role.ADMIN);
             adminRepository.save(admin);
             log.info("Admin seeded successfully");

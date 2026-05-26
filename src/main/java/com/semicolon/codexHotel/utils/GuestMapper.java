@@ -13,7 +13,6 @@ public class GuestMapper {
         guest.setEmail(request.getEmail());
         guest.setPhoneNumber(request.getPhoneNumber());
         guest.setGuestReferenceNumber(GuestReferenceGenerator.generateGuestReference());
-        guest.setPassword(request.getPassword());
         return guest;
     }
 

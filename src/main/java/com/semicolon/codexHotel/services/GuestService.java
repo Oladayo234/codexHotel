@@ -9,6 +9,7 @@ import com.semicolon.codexHotel.dtos.responses.RegisterGuestResponse;
 import com.semicolon.codexHotel.exceptions.*;
 import com.semicolon.codexHotel.utils.GuestMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class GuestService {
 
     private final GuestRepository guestRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public RegisterGuestResponse register(RegisterGuestRequest request) {
         if (guestRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -29,7 +31,7 @@ public class GuestService {
     public GuestLoginResponse login(LoginRequest request) {
         Guest guest = guestRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new GuestNotFoundException("Guest not found"));
-        if (!guest.getPassword().equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), guest.getPassword())) {
             throw new InvalidCredentialsException("Invalid credentials");
         }
         return GuestMapper.toLoginResponse(guest);

@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.List;
 
@@ -54,7 +56,10 @@ public class AdminController {
     }
 
     @GetMapping("/reports")
-    public ResponseEntity<ReportResponse> generateReport() {
-        return ResponseEntity.status(HttpStatus.OK).body(reportService.generateReport());
+    public ResponseEntity<ReportResponse> generateReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            ) {
+        return ResponseEntity.status(HttpStatus.OK).body(reportService.generateReport(startDate, endDate));
     }
 }

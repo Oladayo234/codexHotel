@@ -10,6 +10,7 @@ import com.semicolon.codexHotel.dtos.responses.FrontDeskLoginResponse;
 import com.semicolon.codexHotel.exceptions.InvalidCredentialsException;
 import com.semicolon.codexHotel.utils.FrontDeskReferenceGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class AdminService {
 
     private final AdminRepository adminRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public AdminLoginResponse login(LoginRequest request) {
         Admin admin = adminRepository.findByEmail(request.getEmail())
@@ -40,7 +42,7 @@ public class AdminService {
         Admin frontDesk = new Admin();
         frontDesk.setName(request.getName());
         frontDesk.setEmail(request.getEmail());
-        frontDesk.setPassword(request.getPassword());
+        frontDesk.setPassword(passwordEncoder.encode(request.getPassword()));
         frontDesk.setRole(Role.FRONT_DESK);
         frontDesk.setAdminReferenceNumber(FrontDeskReferenceGenerator.generateFrontDeskReference());
         adminRepository.save(frontDesk);

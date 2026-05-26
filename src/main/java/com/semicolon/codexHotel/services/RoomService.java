@@ -22,12 +22,10 @@ import java.util.List;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final RoomCounterService roomCounterService;
 
     public RoomResponse addRoom(AddRoomRequest request) {
-        String roomNumber = GenerateRoomNumber.generateRoomNumber(request.getRoomType());
-        if (roomRepository.findByRoomNumber(roomNumber).isPresent()) {
-            roomNumber = GenerateRoomNumber.generateRoomNumber(request.getRoomType());
-        }
+        String roomNumber = roomCounterService.generateRoomNumber(request.getRoomType());
         Room room = RoomMapper.toRoom(request);
         room.setRoomNumber(roomNumber);
         roomRepository.save(room);
