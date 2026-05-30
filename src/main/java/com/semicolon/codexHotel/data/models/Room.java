@@ -14,4 +14,6 @@ public class Room {
     private String roomNumber;
     private RoomType roomType;
     private RoomStatus roomStatus;
+    private double pricePerNight;
+    private String imageUrl;
 }

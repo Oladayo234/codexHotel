@@ -12,5 +12,6 @@ public interface RoomRepository extends MongoRepository<Room,String> {
     List<Room> findByRoomStatus(RoomStatus roomStatus);
     List<Room> findByRoomType(RoomType roomType);
     Optional<Room> findByRoomNumber(String roomNumber);
+    List<Room> findByRoomStatusAndRoomType(RoomStatus roomStatus, RoomType roomType);
     long countByRoomStatus(RoomStatus roomStatus);
 }

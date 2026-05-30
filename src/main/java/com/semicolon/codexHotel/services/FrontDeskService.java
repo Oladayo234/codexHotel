@@ -10,15 +10,19 @@ import com.semicolon.codexHotel.data.repositories.ReservationRepository;
 import com.semicolon.codexHotel.data.repositories.RoomRepository;
 import com.semicolon.codexHotel.dtos.requests.CancelReservationRequest;
 import com.semicolon.codexHotel.dtos.requests.ReceptionRequest;
+import com.semicolon.codexHotel.events.*;
 import com.semicolon.codexHotel.exceptions.*;
 import com.semicolon.codexHotel.utils.ReservationRoomPair;
 import com.semicolon.codexHotel.dtos.responses.CancelReservationResponse;
 import com.semicolon.codexHotel.dtos.responses.ReceptionResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class FrontDeskService {
     private final ReservationRepository reservationRepository;
     private final RoomRepository roomRepository;
     private final GuestRepository guestRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ReceptionResponse checkIn(ReceptionRequest request){
         ReservationRoomPair pair = findReservation(request.getReferenceNumber());
@@ -38,6 +43,8 @@ public class FrontDeskService {
 
         reservation.setReservationStatus(ReservationStatus.CHECKED_IN);
         reservationRepository.save(reservation);
+
+        eventPublisher.publishEvent(new GuestCheckedInEvent(this, reservation.getReferenceNumber()));
 
         ReceptionResponse response = new ReceptionResponse();
         Guest guest = guestRepository.findById(reservation.getGuestId())
@@ -64,6 +71,8 @@ public class FrontDeskService {
         reservation.setReservationStatus(ReservationStatus.CHECKED_OUT);
         reservationRepository.save(reservation);
 
+        eventPublisher.publishEvent(new GuestCheckedOutEvent(this, reservation.getReferenceNumber()));
+
         ReceptionResponse response = new ReceptionResponse();
         Guest guest = guestRepository.findById(reservation.getGuestId())
                 .orElseThrow(() -> new GuestNotFoundException("Guest not found"));
@@ -87,10 +96,38 @@ public class FrontDeskService {
         reservation.setReservationStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
 
+        eventPublisher.publishEvent(new ReservationCancelledEvent(this, reservation.getReferenceNumber()));
+
         CancelReservationResponse response = new CancelReservationResponse();
         response.setMessage("Reservation cancelled successfully");
         response.setRoomNumber(room.getRoomNumber());
         return response;
+    }
+
+    @Scheduled(cron = "0 0 9 * * *") // runs every day at 9am
+    public void sendUpcomingCheckInReminders() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        List<Reservation> upcoming = reservationRepository
+                .findByCheckInDateAndReservationStatus(tomorrow, ReservationStatus.RESERVED);
+        for (Reservation reservation : upcoming) {
+            eventPublisher.publishEvent(new ReservationReminderEvent(this, reservation.getReferenceNumber()));
+        }
+    }
+
+    @Scheduled(cron = "0 0 8 * * *")
+    public void sendUpcomingCheckOutReminders() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        List<Reservation> checkingOut = reservationRepository
+                .findByCheckOutDateAndReservationStatus(tomorrow, ReservationStatus.CHECKED_IN);
+        for (Reservation reservation : checkingOut) {
+            eventPublisher.publishEvent(new GuestCheckedOutReminderEvent(this, reservation.getReferenceNumber()));
+        }
+    }
+
+    public void sendReminder(String referenceNumber) {
+        reservationRepository.findByReferenceNumber(referenceNumber)
+                .orElseThrow(() -> new ReservationNotFoundException("Reservation not found"));
+        eventPublisher.publishEvent(new ReservationReminderEvent(this, referenceNumber));
     }
 
     private ReservationRoomPair findReservation(String referenceNumber) {

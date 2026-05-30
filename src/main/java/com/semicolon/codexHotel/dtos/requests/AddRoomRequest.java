@@ -9,4 +9,9 @@ import lombok.Data;
 public class AddRoomRequest {
     @NotNull(message = "Room type is required")
     private RoomType roomType;
+
+    @Min(value = 1, message = "Price must be greater than 0")
+    private double pricePerNight;
+
+    private String imageUrl;
 }

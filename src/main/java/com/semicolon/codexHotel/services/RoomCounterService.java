@@ -19,7 +19,10 @@ public class RoomCounterService {
 
     public String generateRoomNumber(RoomType roomType){
         Query query = new Query(Criteria.where("_id").is(roomType.name()));
-        Update update = new Update().inc("counter", 1);
+        mongoTemplate.upsert(query,
+                new Update().setOnInsert("count", 100),
+                RoomCounter.class);
+        Update update = new Update().inc("count", 1);
 
         FindAndModifyOptions options = FindAndModifyOptions.options()
                 .returnNew(true)

@@ -2,12 +2,10 @@ package com.semicolon.codexHotel.controllers;
 
 import com.semicolon.codexHotel.dtos.requests.BookRoomRequest;
 import com.semicolon.codexHotel.dtos.requests.CancelReservationRequest;
-import com.semicolon.codexHotel.dtos.requests.LoginRequest;
 import com.semicolon.codexHotel.dtos.requests.ReceptionRequest;
 import com.semicolon.codexHotel.dtos.responses.*;
 import com.semicolon.codexHotel.services.AdminService;
 import com.semicolon.codexHotel.services.FrontDeskService;
-import com.semicolon.codexHotel.services.NotificationService;
 import com.semicolon.codexHotel.services.ReservationService;
 import com.semicolon.codexHotel.services.RoomService;
 import jakarta.validation.Valid;
@@ -25,14 +23,8 @@ public class FrontDeskController {
 
     private final FrontDeskService frontDeskService;
     private final ReservationService reservationService;
-    private final NotificationService notificationService;
     private final RoomService roomService;
     private final AdminService adminService;
-
-    @PostMapping("/login")
-    public ResponseEntity<AdminLoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(adminService.login(request));
-    }
 
     @PostMapping("/book")
     public ResponseEntity<BookRoomResponse> bookRoom(@Valid @RequestBody BookRoomRequest request) {
@@ -65,8 +57,9 @@ public class FrontDeskController {
     }
 
     @PostMapping("/notify/{referenceNumber}")
-    public ResponseEntity<NotificationResponse> sendNotification(@PathVariable String referenceNumber) {
-        return ResponseEntity.status(HttpStatus.OK).body(notificationService.sendReminder(referenceNumber));
+    public ResponseEntity<Void> sendNotification(@PathVariable String referenceNumber) {
+        frontDeskService.sendReminder(referenceNumber);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("/rooms/available")

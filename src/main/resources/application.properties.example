@@ -1,0 +1,6 @@
+spring.application.name=codexHotel
+spring.data.mongodb.uri=your_mongo_uri
+jwt.secret=your_jwt_secret
+jwt.expiration=86400000
+paystack.secret-key=your_paystack_secret
+paystack.public-key=your_paystack_public

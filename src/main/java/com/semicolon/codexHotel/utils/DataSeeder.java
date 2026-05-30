@@ -19,15 +19,16 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (adminRepository.findByEmail("admin@codexhotel.com").isEmpty()) {
-            Admin admin = new Admin();
-            admin.setName("Madam Bolu");
-            admin.setAdminReferenceNumber(AdminReferenceGenerator.generateAdminReference());
-            admin.setEmail("admin@codexhotel.com");
-            admin.setPassword(passwordEncoder.encode("Admin@1234"));
-            admin.setRole(Role.ADMIN);
-            adminRepository.save(admin);
-            log.info("Admin seeded successfully");
-        }
+        log.info("Saving admin to MongoDB...");
+        adminRepository.deleteAll();
+        Admin admin = new Admin();
+        admin.setName("Madam Bolu");
+        admin.setAdminReferenceNumber(AdminReferenceGenerator.generateAdminReference());
+        admin.setEmail("admin@codexhotel.com");
+        admin.setPassword(passwordEncoder.encode("Admin@1234"));
+        admin.setRole(Role.ADMIN);
+        Admin saved = adminRepository.save(admin);
+        log.info("Saved admin with id: {}", saved.getId());
+        log.info("Admin seeded successfully");
     }
 }

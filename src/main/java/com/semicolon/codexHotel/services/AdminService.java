@@ -20,21 +20,6 @@ public class AdminService {
     private final AdminRepository adminRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public AdminLoginResponse login(LoginRequest request) {
-        Admin admin = adminRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
-        if (!admin.getPassword().equals(request.getPassword())) {
-            throw new InvalidCredentialsException("Invalid credentials");
-        }
-        AdminLoginResponse response = new AdminLoginResponse();
-        response.setMessage("Welcome, Madam Bolu!");
-        response.setAdminReferenceNumber(admin.getAdminReferenceNumber());
-        response.setName(admin.getName());
-        response.setEmail(admin.getEmail());
-        response.setRole(admin.getRole());
-        return response;
-    }
-
     public FrontDeskLoginResponse createFrontDesk(CreateFrontDeskRequest request) {
         if (adminRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new InvalidCredentialsException("Front desk account with email " + request.getEmail() + " already exists");

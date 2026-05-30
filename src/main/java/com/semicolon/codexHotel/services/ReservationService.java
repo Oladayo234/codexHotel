@@ -9,12 +9,14 @@ import com.semicolon.codexHotel.data.repositories.ReservationRepository;
 import com.semicolon.codexHotel.data.repositories.RoomRepository;
 import com.semicolon.codexHotel.dtos.requests.BookRoomRequest;
 import com.semicolon.codexHotel.dtos.responses.BookRoomResponse;
+import com.semicolon.codexHotel.events.RoomBookedEvent;
 import com.semicolon.codexHotel.exceptions.GuestNotFoundException;
 import com.semicolon.codexHotel.exceptions.RoomNotAvailableException;
 import com.semicolon.codexHotel.utils.PaymentCalculator;
 import com.semicolon.codexHotel.utils.ReservationMapper;
 import com.semicolon.codexHotel.utils.ReservationReferenceGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,18 +30,13 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final RoomRepository roomRepository;
     private final GuestRepository guestRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public BookRoomResponse bookRoom(BookRoomRequest request) {
         Guest guest = guestRepository.findByGuestReferenceNumber(request.getGuestReferenceNumber())
                 .orElseThrow(() -> new GuestNotFoundException("Guest not found"));
 
-        List<Room> allAvailableRooms = roomRepository.findByRoomStatus(RoomStatus.AVAILABLE);
-        List<Room> availableRooms = new ArrayList<>();
-        for (Room room : allAvailableRooms) {
-            if (room.getRoomType() == request.getRoomType()) {
-                availableRooms.add(room);
-            }
-        }
+        List<Room> availableRooms = roomRepository.findByRoomStatusAndRoomType(RoomStatus.AVAILABLE, request.getRoomType());
 
         if (availableRooms.isEmpty()) {
             throw new RoomNotAvailableException("No available rooms of type " + request.getRoomType());
@@ -66,6 +63,8 @@ public class ReservationService {
 
         room.setRoomStatus(RoomStatus.RESERVED);
         roomRepository.save(room);
+
+        eventPublisher.publishEvent(new RoomBookedEvent(this, reservation.getReferenceNumber()));
 
         return ReservationMapper.toBookRoomResponse(reservation, guest, room);
     }

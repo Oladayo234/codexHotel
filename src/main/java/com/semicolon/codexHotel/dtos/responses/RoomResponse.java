@@ -10,4 +10,5 @@ public class RoomResponse {
     private RoomType roomType;
     private double pricePerNight;
     private RoomStatus roomStatus;
+    private String imageUrl;
 }

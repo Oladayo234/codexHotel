@@ -25,11 +25,6 @@ public class AdminController {
     private final RoomService roomService;
     private final ReportService reportService;
 
-    @PostMapping("/login")
-    public ResponseEntity<AdminLoginResponse> login(@Valid @RequestBody LoginRequest request){
-        return ResponseEntity.status(HttpStatus.OK).body(adminService.login(request));
-    }
-
     @PostMapping("/frontdesk")
     public ResponseEntity<FrontDeskLoginResponse> createFrontDesk(@Valid @RequestBody CreateFrontDeskRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(adminService.createFrontDesk(request));
