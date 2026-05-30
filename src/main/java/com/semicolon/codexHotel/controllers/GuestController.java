@@ -24,16 +24,6 @@ public class GuestController {
     private final ReservationService reservationService;
     private final RoomService roomService;
 
-    @PostMapping("/register")
-    public ResponseEntity<RegisterGuestResponse> register(@Valid @RequestBody RegisterGuestRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(guestService.register(request));
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<GuestLoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(guestService.login(request));
-    }
-
     @PostMapping("/book")
     public ResponseEntity<BookRoomResponse> bookRoom(@Valid @RequestBody BookRoomRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(reservationService.bookRoom(request));

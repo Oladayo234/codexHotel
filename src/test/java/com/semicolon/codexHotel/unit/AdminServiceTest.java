@@ -9,6 +9,7 @@ import com.semicolon.codexHotel.dtos.responses.AdminLoginResponse;
 import com.semicolon.codexHotel.dtos.responses.FrontDeskLoginResponse;
 import com.semicolon.codexHotel.exceptions.InvalidCredentialsException;
 import com.semicolon.codexHotel.services.AdminService;
+import com.semicolon.codexHotel.services.AuthService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,7 +33,7 @@ class AdminServiceTest {
     private BCryptPasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private AdminService adminService;
+    private AuthService authService;
 
     // ── login ─────────────────────────────────────────────────────────────────
 
@@ -52,7 +53,7 @@ class AdminServiceTest {
 
         when(adminRepository.findByEmail("admin@codexhotel.com")).thenReturn(Optional.of(admin));
 
-        AdminLoginResponse response = adminService.login(request);
+        AdminLoginResponse response = .login(request);
 
         assertEquals("Welcome, Madam Bolu!", response.getMessage());
         assertEquals("Madam Bolu", response.getName());
@@ -109,7 +110,7 @@ class AdminServiceTest {
         assertTrue(response.getFrontDeskReferenceNumber().startsWith("FD-"));
         verify(adminRepository).save(argThat(a ->
                 a.getRole() == Role.FRONT_DESK &&
-                "$2a$10$encodedAlice".equals(a.getPassword())
+                        "$2a$10$encodedAlice".equals(a.getPassword())
         ));
     }
 

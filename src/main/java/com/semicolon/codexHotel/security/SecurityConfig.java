@@ -29,8 +29,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/guest/register",
-                                "/api/rooms/**",
+                                "/api/guests/rooms/available",
+                                "/api/payments/webhook",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/index.html",
@@ -41,7 +41,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/frontdesk/**").hasRole("FRONT_DESK")
-                        .requestMatchers("/api/guest/**").hasRole("GUEST")
+                        .requestMatchers("/api/guests/**").hasRole("GUEST")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

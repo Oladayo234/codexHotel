@@ -81,6 +81,16 @@ public class NotificationService {
         log.info("[NOTIFICATION - CHECKOUT REMINDER] To: {} | {}", ctx.guest().getEmail(), message);
     }
 
+    @EventListener
+    public void onReservationConfirmed(ReservationConfirmedEvent event) {
+        NotificationContext ctx = buildContext(event.getReservationReferenceNumber());
+        String message = "Dear " + ctx.guest().getName() + ", your payment has been confirmed! " +
+                "Your reservation for Room " + ctx.room().getRoomNumber() + " is now confirmed. " +
+                "Check-in date: " + ctx.reservation().getCheckInDate() + ". " +
+                "Reference: " + ctx.reservation().getReferenceNumber();
+        log.info("[NOTIFICATION - CONFIRMED] To: {} | {}", ctx.guest().getEmail(), message);
+    }
+
     private NotificationContext buildContext(String referenceNumber) {
         Reservation reservation = reservationRepository.findByReferenceNumber(referenceNumber)
                 .orElseThrow(() -> new ReservationNotFoundException("Reservation not found"));

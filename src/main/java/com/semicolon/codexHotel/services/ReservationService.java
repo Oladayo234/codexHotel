@@ -3,6 +3,7 @@ package com.semicolon.codexHotel.services;
 import com.semicolon.codexHotel.data.models.Guest;
 import com.semicolon.codexHotel.data.models.Reservation;
 import com.semicolon.codexHotel.data.models.Room;
+import com.semicolon.codexHotel.data.models.enums.ReservationStatus;
 import com.semicolon.codexHotel.data.models.enums.RoomStatus;
 import com.semicolon.codexHotel.data.repositories.GuestRepository;
 import com.semicolon.codexHotel.data.repositories.ReservationRepository;
@@ -20,7 +21,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,12 +31,14 @@ public class ReservationService {
     private final RoomRepository roomRepository;
     private final GuestRepository guestRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final PaystackService paystackService;
 
     public BookRoomResponse bookRoom(BookRoomRequest request) {
         Guest guest = guestRepository.findByGuestReferenceNumber(request.getGuestReferenceNumber())
                 .orElseThrow(() -> new GuestNotFoundException("Guest not found"));
 
-        List<Room> availableRooms = roomRepository.findByRoomStatusAndRoomType(RoomStatus.AVAILABLE, request.getRoomType());
+        List<Room> availableRooms = roomRepository
+                .findByRoomStatusAndRoomType(RoomStatus.AVAILABLE, request.getRoomType());
 
         if (availableRooms.isEmpty()) {
             throw new RoomNotAvailableException("No available rooms of type " + request.getRoomType());
@@ -47,8 +49,10 @@ public class ReservationService {
         LocalDate checkInDate = LocalDate.now();
         LocalDate checkOutDate = checkInDate.plusDays(request.getNumberOfNights());
 
-        boolean isFestive = PaymentCalculator.isFestivePeriod(checkInDate.getMonthValue(), checkInDate.getDayOfMonth());
-        double totalPayment = PaymentCalculator.calculateTotalPayment(room.getRoomType(), request.getNumberOfNights(), isFestive);
+        boolean isFestive = PaymentCalculator.isFestivePeriod(
+                checkInDate.getMonthValue(), checkInDate.getDayOfMonth());
+        double totalPayment = PaymentCalculator.calculateTotalPayment(
+                room.getRoomType(), request.getNumberOfNights(), isFestive);
 
         Reservation reservation = new Reservation();
         reservation.setReferenceNumber(ReservationReferenceGenerator.generateReservationReference());
@@ -59,14 +63,23 @@ public class ReservationService {
         reservation.setNumberOfNights(request.getNumberOfNights());
         reservation.setFestivePeriod(isFestive);
         reservation.setTotalPayment(totalPayment);
+        reservation.setReservationStatus(ReservationStatus.PENDING_PAYMENT);
         reservationRepository.save(reservation);
 
         room.setRoomStatus(RoomStatus.RESERVED);
         roomRepository.save(room);
 
+        String paymentUrl = paystackService.initializeTransaction(
+                guest.getEmail(),
+                totalPayment,
+                reservation.getReferenceNumber()
+        );
+
         eventPublisher.publishEvent(new RoomBookedEvent(this, reservation.getReferenceNumber()));
 
-        return ReservationMapper.toBookRoomResponse(reservation, guest, room);
+        BookRoomResponse response = ReservationMapper.toBookRoomResponse(reservation, guest, room);
+        response.setPaymentUrl(paymentUrl);
+        return response;
     }
 
     public List<Reservation> getReservationsByGuestReferenceNumber(String guestReferenceNumber) {

@@ -13,6 +13,7 @@ public class BookRoomResponse {
     private String roomType;
     private double pricePerNight;
     private double totalPayment;
+    private String paymentUrl;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
 }
