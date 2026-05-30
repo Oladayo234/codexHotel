@@ -1,0 +1,28 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: codexhotel-mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: codexHotel
+
+  app:
+    build: .
+    container_name: codexhotel-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/codexHotel
+      JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      JWT_EXPIRATION: 86400000
+      PAYSTACK_SECRET_KEY: sk_test_a0ebc1f60e51e535342f6352ea5fb8b1ddf820c4
+      PAYSTACK_PUBLIC_KEY: pk_test_effce37b562aab7169099e062f59f1e6c5ef5a2c
+      PAYSTACK_BASE_URL: https://api.paystack.co
+
+volumes:
+  mongo-data:
