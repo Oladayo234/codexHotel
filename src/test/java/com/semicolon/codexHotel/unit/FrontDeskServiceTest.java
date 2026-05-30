@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,9 +35,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class FrontDeskServiceTest {
 
-    @Mock private ReservationRepository reservationRepository;
-    @Mock private RoomRepository        roomRepository;
-    @Mock private GuestRepository       guestRepository;
+    @Mock private ReservationRepository  reservationRepository;
+    @Mock private RoomRepository         roomRepository;
+    @Mock private GuestRepository        guestRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private FrontDeskService frontDeskService;

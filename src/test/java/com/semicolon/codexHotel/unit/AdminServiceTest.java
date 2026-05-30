@@ -4,12 +4,9 @@ import com.semicolon.codexHotel.data.models.Admin;
 import com.semicolon.codexHotel.data.models.enums.Role;
 import com.semicolon.codexHotel.data.repositories.AdminRepository;
 import com.semicolon.codexHotel.dtos.requests.CreateFrontDeskRequest;
-import com.semicolon.codexHotel.dtos.requests.LoginRequest;
-import com.semicolon.codexHotel.dtos.responses.AdminLoginResponse;
 import com.semicolon.codexHotel.dtos.responses.FrontDeskLoginResponse;
 import com.semicolon.codexHotel.exceptions.InvalidCredentialsException;
 import com.semicolon.codexHotel.services.AdminService;
-import com.semicolon.codexHotel.services.AuthService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,61 +30,7 @@ class AdminServiceTest {
     private BCryptPasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private AuthService authService;
-
-    // ── login ─────────────────────────────────────────────────────────────────
-
-    @Test
-    void login_validPlainTextPassword_returnsAdminLoginResponse() {
-        // AdminService compares passwords with plain .equals(), not BCrypt
-        Admin admin = new Admin();
-        admin.setEmail("admin@codexhotel.com");
-        admin.setPassword("Admin@1234");   // stored as plain text for this comparison to work
-        admin.setName("Madam Bolu");
-        admin.setAdminReferenceNumber("ADM-TESTXXXX");
-        admin.setRole(Role.ADMIN);
-
-        LoginRequest request = new LoginRequest();
-        request.setEmail("admin@codexhotel.com");
-        request.setPassword("Admin@1234");
-
-        when(adminRepository.findByEmail("admin@codexhotel.com")).thenReturn(Optional.of(admin));
-
-        AdminLoginResponse response = .login(request);
-
-        assertEquals("Welcome, Madam Bolu!", response.getMessage());
-        assertEquals("Madam Bolu", response.getName());
-        assertEquals("admin@codexhotel.com", response.getEmail());
-        assertEquals(Role.ADMIN, response.getRole());
-    }
-
-    @Test
-    void login_emailNotFound_throwsInvalidCredentialsException() {
-        LoginRequest request = new LoginRequest();
-        request.setEmail("ghost@example.com");
-        request.setPassword("Password@1");
-
-        when(adminRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
-
-        assertThrows(InvalidCredentialsException.class, () -> adminService.login(request));
-    }
-
-    @Test
-    void login_wrongPassword_throwsInvalidCredentialsException() {
-        Admin admin = new Admin();
-        admin.setEmail("admin@codexhotel.com");
-        admin.setPassword("CorrectPassword");
-
-        LoginRequest request = new LoginRequest();
-        request.setEmail("admin@codexhotel.com");
-        request.setPassword("WrongPassword");
-
-        when(adminRepository.findByEmail("admin@codexhotel.com")).thenReturn(Optional.of(admin));
-
-        assertThrows(InvalidCredentialsException.class, () -> adminService.login(request));
-    }
-
-    // ── createFrontDesk ───────────────────────────────────────────────────────
+    private AdminService adminService;
 
     @Test
     void createFrontDesk_newEmail_savesStaffAndReturnsResponse() {

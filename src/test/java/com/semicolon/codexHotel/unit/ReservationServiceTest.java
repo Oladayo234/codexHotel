@@ -12,12 +12,14 @@ import com.semicolon.codexHotel.dtos.requests.BookRoomRequest;
 import com.semicolon.codexHotel.dtos.responses.BookRoomResponse;
 import com.semicolon.codexHotel.exceptions.GuestNotFoundException;
 import com.semicolon.codexHotel.exceptions.RoomNotAvailableException;
+import com.semicolon.codexHotel.services.PaystackService;
 import com.semicolon.codexHotel.services.ReservationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,14 +27,18 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceTest {
 
-    @Mock private ReservationRepository reservationRepository;
-    @Mock private RoomRepository        roomRepository;
-    @Mock private GuestRepository       guestRepository;
+    @Mock private ReservationRepository     reservationRepository;
+    @Mock private RoomRepository            roomRepository;
+    @Mock private GuestRepository           guestRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private PaystackService           paystackService;
 
     @InjectMocks
     private ReservationService reservationService;
@@ -42,6 +48,7 @@ class ReservationServiceTest {
         g.setId(id);
         g.setGuestReferenceNumber(refNum);
         g.setName(name);
+        g.setEmail("test@example.com"); // ← add this
         return g;
     }
 
@@ -67,9 +74,11 @@ class ReservationServiceTest {
         req.setNumberOfNights(3);
 
         when(guestRepository.findByGuestReferenceNumber("GST-12345678")).thenReturn(Optional.of(g));
-        when(roomRepository.findByRoomStatus(RoomStatus.AVAILABLE)).thenReturn(List.of(r));
+        when(roomRepository.findByRoomStatusAndRoomType(RoomStatus.AVAILABLE, RoomType.SINGLE)).thenReturn(List.of(r));
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
         when(roomRepository.save(any(Room.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(paystackService.initializeTransaction(anyString(), anyDouble(), anyString()))
+                .thenReturn("https://paystack.com/pay/test");
 
         BookRoomResponse response = reservationService.bookRoom(req);
 
@@ -78,6 +87,7 @@ class ReservationServiceTest {
         assertEquals("SN-1",     response.getRoomNumber());
         assertNotNull(response.getReferenceNumber());
         assertTrue(response.getReferenceNumber().startsWith("RES-"));
+        assertEquals("https://paystack.com/pay/test", response.getPaymentUrl());
         verify(reservationRepository).save(any(Reservation.class));
         verify(roomRepository).save(argThat(room -> room.getRoomStatus() == RoomStatus.RESERVED));
     }
@@ -96,9 +106,11 @@ class ReservationServiceTest {
         req.setNumberOfNights(1);
 
         when(guestRepository.findByGuestReferenceNumber("GST-TEST")).thenReturn(Optional.of(g));
-        when(roomRepository.findByRoomStatus(RoomStatus.AVAILABLE)).thenReturn(List.of(r));
+        when(roomRepository.findByRoomStatusAndRoomType(RoomStatus.AVAILABLE, RoomType.SUITE)).thenReturn(List.of(r));
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
         when(roomRepository.save(any(Room.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(paystackService.initializeTransaction(anyString(), anyDouble(), anyString()))
+                .thenReturn("https://paystack.com/pay/test");
 
         BookRoomResponse response = reservationService.bookRoom(req);
 
@@ -123,7 +135,7 @@ class ReservationServiceTest {
     void bookRoom_noRoomsAtAll_throwsRoomNotAvailableException() {
         when(guestRepository.findByGuestReferenceNumber("GST-12345678"))
                 .thenReturn(Optional.of(guest("g-1", "GST-12345678", "Jane")));
-        when(roomRepository.findByRoomStatus(RoomStatus.AVAILABLE))
+        when(roomRepository.findByRoomStatusAndRoomType(RoomStatus.AVAILABLE, RoomType.SINGLE))
                 .thenReturn(Collections.emptyList());
 
         BookRoomRequest req = new BookRoomRequest();
@@ -136,11 +148,11 @@ class ReservationServiceTest {
 
     @Test
     void bookRoom_availableRoomWrongType_throwsRoomNotAvailableException() {
-        // Only SINGLE rooms available but guest wants SUITE
+        // No SUITE rooms available — repository returns empty for that type
         when(guestRepository.findByGuestReferenceNumber("GST-12345678"))
                 .thenReturn(Optional.of(guest("g-1", "GST-12345678", "Jane")));
-        when(roomRepository.findByRoomStatus(RoomStatus.AVAILABLE))
-                .thenReturn(List.of(room("r-1", "SN-1", RoomType.SINGLE)));
+        when(roomRepository.findByRoomStatusAndRoomType(RoomStatus.AVAILABLE, RoomType.SUITE))
+                .thenReturn(Collections.emptyList());
 
         BookRoomRequest req = new BookRoomRequest();
         req.setGuestReferenceNumber("GST-12345678");

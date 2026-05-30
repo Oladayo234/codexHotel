@@ -1,12 +1,7 @@
 package com.semicolon.codexHotel.controllers;
 
 import com.semicolon.codexHotel.dtos.requests.BookRoomRequest;
-import com.semicolon.codexHotel.dtos.requests.LoginRequest;
-import com.semicolon.codexHotel.dtos.requests.RegisterGuestRequest;
 import com.semicolon.codexHotel.dtos.responses.BookRoomResponse;
-import com.semicolon.codexHotel.dtos.responses.GuestLoginResponse;
-import com.semicolon.codexHotel.dtos.responses.RegisterGuestResponse;
-import com.semicolon.codexHotel.services.GuestService;
 import com.semicolon.codexHotel.services.ReservationService;
 import com.semicolon.codexHotel.services.RoomService;
 import jakarta.validation.Valid;
@@ -20,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class GuestController {
 
-    private final GuestService guestService;
     private final ReservationService reservationService;
     private final RoomService roomService;
 
