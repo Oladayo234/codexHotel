@@ -1,3 +1,11 @@
+name: CodexHotel CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,3 +32,8 @@ jobs:
           PAYSTACK_SECRET_KEY: sk_test_dummy
           PAYSTACK_PUBLIC_KEY: pk_test_dummy
           PAYSTACK_BASE_URL: https://api.paystack.co
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if:
