@@ -37,7 +37,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",
                                 "/api-docs/**",
-                                "/webjars/**"
+                                "/webjars/**",
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/frontdesk/**").hasRole("FRONT_DESK")
